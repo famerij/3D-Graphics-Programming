@@ -1,0 +1,93 @@
+<?doctype HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>3D Graphics Programming, Module 2, Henri Viitanen</title>
+<!-- include jQuery -->
+<script src="../lib/jquery-1.9.1.min.js"></script>
+<script src="../lib/three.js"></script>
+
+<!-- vertex shader code -->
+<script id="shader-vs" type="x-shader/x-vertex">
+////////////////////////////////////////////////////////////////////////////////
+attribute float aAngle;   // attribute for angle
+varying vec4 vColor;     // varying variable for color
+////////////////////////////////////////////////////////////////////////////////
+uniform float uRadius;    // uniform circle radius
+uniform mat4 uModelView;   // uniform modelView matrix (transform)
+uniform mat4 uProjection;  // uniform projection matrix (transform)
+////////////////////////////////////////////////////////////////////////////////
+// function for computing vertex position
+// using parametric form of the equation of the circle
+vec4 transform(float a)
+{
+    float x = uRadius * cos(a);
+    float y = uRadius * sin(a);
+    return vec4(x, y, 0.0, 1.0);
+}
+
+// Compute color by angle
+vec4 color(float a)
+{
+    float x = uRadius * cos(a);
+    float y = uRadius * sin(a);
+    return vec4(abs(x), abs(y), 0.0, 1.0);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// main program.
+void main()
+{
+  vColor = color(aAngle);
+  vec4 vertPos = transform(aAngle);
+  gl_PointSize = 10.0;
+  gl_Position  = uProjection  * uModelView * vertPos;
+}
+////////////////////////////////////////////////////////////////////////////////
+</script>
+
+<!-- fragment shader code -->
+<script id="shader-fs" type="x-shader/x-fragment">
+////////////////////////////////////////////////////////////////////////////////
+precision lowp float;
+////////////////////////////////////////////////////////////////////////////////
+varying vec4 vColor;
+////////////////////////////////////////////////////////////////////////////////
+// main program.
+void main() {
+  gl_FragColor = vColor;
+}
+////////////////////////////////////////////////////////////////////////////////
+</script>
+
+
+<!-- include our lesson-based js -->
+<script src="circle.js"></script>
+<!-- bind radio button change to type change -->
+<script>
+$(function(){
+   $("#controls input").each( function(i){
+      $(this).on('change', function(){
+         if($(this).is(':checked')){
+             app.setMode( $(this).val() );
+             app.Render();
+          }
+      });
+   });
+})
+</script>
+<link rel="stylesheet" type="text/css" href="circle.css">
+</head>
+<body onload='app.Prepare($("#main"));'>
+<canvas id="main" style="border: solid 1px;" width="800" height="600">Canvas is not supported</canvas>
+
+<div id="controls">
+<div id="title">3D Graphics programming, module 2</div>
+<div>Select option for rendering type.<br/>Color is calculated by angle in vertex shader.</div>
+<input type="radio" name="render-type" value="TRIANGLE_FAN" checked/>Polygon<br/>
+<input type="radio" name="render-type" value="LINE_LOOP"/>Line loop<br/>
+<input type="radio" name="render-type" value="POINT_SPRITE"/>Point sprite<br/>
+</div>
+
+</body>
+</html>

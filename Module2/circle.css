@@ -1,0 +1,17 @@
+#controls {
+    position: absolute;
+    top: 0px;
+    color: white;
+}
+#main {
+    position: absolute;
+    top:0px;
+}
+#title {
+    font-size: 24pt;
+    font-weight: bold;
+    font-family: "Trebuchet MS";
+}
+BODY {
+    font-family: "Trebuchet MS";
+}
