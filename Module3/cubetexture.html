@@ -1,0 +1,47 @@
+<?doctype HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>3D Graphics Programming, Module 3, Henri Viitanen</title>
+<!-- include jQuery -->
+<script src="../lib/jquery-1.9.1.min.js"></script>
+<script src="../lib/gl-matrix-min.js"></script>
+
+<!-- vertex shader code -->
+<script id="shader-vs" type="x-shader/x-vertex">
+attribute mediump vec3 aVertexPosition;
+
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+uniform samplerCube uSamplerCube;
+
+varying mediump vec3 vTextureCoord;
+
+void main(void) {
+  gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+  vTextureCoord = aVertexPosition;
+}
+</script>
+
+<!-- fragment shader code -->
+<script id="shader-fs" type="x-shader/x-fragment">
+uniform samplerCube uSamplerCube;
+
+varying mediump vec3 vTextureCoord;
+
+void main(void) {
+  gl_FragColor = textureCube( uSamplerCube, vTextureCoord );
+}
+</script>
+
+
+<!-- include our lesson-based js -->
+<script src="cubetexture.js"></script>
+
+</head>
+<body onload="initWebGL()">
+  <canvas id="my-canvas" width="1000" height="800">
+  Your browser does not support the HTML5 canvas element.
+  </canvas>
+</body>
+</html>
