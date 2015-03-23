@@ -8,27 +8,17 @@
   <script src="scene.js"></script>
   <!-- vertex shader for custom lighting -->
   <script id="light-vs" type="x-shader/x-vertex">
-    uniform vec3 u_spotLightPos;
-    uniform vec3 u_spotLightDir;
-
     varying vec2 v_uv;
     varying vec3 transformedNormal;
     varying vec4 mvPos;
     varying vec4 worldPos;
-    varying vec3 spotLightDir;
-    varying vec3 spotLightSpotDir;
 
     void main() {
       // Eye space normal
       transformedNormal = normalize(normalMatrix * normal);
       // Vertex position in camera space
       mvPos = modelViewMatrix * vec4(position,1);
-      // Vertex position in world space
-      worldPos = modelMatrix * vec4(position,1);
-      //Point light
-      vec4 spotLightViewPos = viewMatrix * vec4(u_spotLightPos, 1.0);
-      spotLightDir = spotLightViewPos.xyz - mvPos.xyz;
-      spotLightSpotDir = normalize(u_spotLightDir);
+
       // pass texcoords
       v_uv = uv;
       // compute vertex position
@@ -45,6 +35,8 @@
     uniform vec3 u_dirLightPos;
     uniform vec4 u_dirLightColor;
     // spotlight
+    uniform vec3 u_spotLightPos;
+    uniform vec3 u_spotLightDir;
     uniform vec4 u_spotLightColor;
     uniform float u_spotLightDist;
     uniform float u_spotLightInt;
@@ -55,7 +47,6 @@
     varying vec2 v_uv;
     varying vec3 transformedNormal;
     varying vec4 mvPos;
-    varying vec4 worldPos;
     varying vec3 spotLightDir;
     varying vec3 spotLightSpotDir;
 
@@ -68,6 +59,11 @@
       float diffuseLightAmount = max(dot( n, lightDir ), 0.0);
 
       vec3 v_light = u_ambient.xyz + diffuseLightAmount * u_dirLightColor.xyz;
+
+      //Point light
+      vec4 spotLightViewPos = viewMatrix * vec4(u_spotLightPos, 1.0);
+      vec3 spotLightDir = spotLightViewPos.xyz - mvPos.xyz;
+      vec3 spotLightSpotDir = normalize(u_spotLightDir);
 
       // Dot product between normal and spotlight direction from fragment
       float NdotL = max(dot(n, normalize(spotLightDir)), 0.0);

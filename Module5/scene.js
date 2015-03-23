@@ -1,7 +1,7 @@
 /*************************************************************
   3D Graphics Programming
-  anssi.grohn@karelia.fi 2013
-  Code template for module 5 assignment (lighting)
+  Henri Viitanen 2015
+  Module 5
  *************************************************************/
 // Parameters
 var width = 800,
