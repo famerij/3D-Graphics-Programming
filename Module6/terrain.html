@@ -1,0 +1,207 @@
+<!--
+/*************************************************************
+  3D Graphics Programming
+  Displacement mapping with plane and a simple texture.
+  (c) anssi.grohn at karelia.fi 2013-2015
+ *************************************************************/
+ -->
+<html>
+  <head> 
+    <title>Displacement mapping demo</title> 
+    <style>canvas { width: 100%; height: 100% }</style>
+      <script src="../lib/jquery-1.9.1.min.js"></script> 
+      <script src="../lib/three.js"></script> 
+  </style>
+    <script id="terrainvs" type="x-shader/x-vertex">
+
+    // hey, we are using sampler2D in vertex shader!
+    uniform sampler2D map;
+
+    uniform vec2 dimensions;
+    uniform vec2 scale;
+    varying vec3 v_Normal;
+
+    void main() {
+        // current fragment position 
+        vec3 center = vec3(position.xy*scale.x, (texture2D(map,position.xy).x)*scale.y);
+        vec3 neighbors[8];
+
+        // compute neighbouring vertex positions
+        vec2 pos = position.xy+vec2(-dimensions.x, -dimensions.y);
+        neighbors[0] = vec3(pos*scale.x, (texture2D(map,pos).x)*scale.y);
+
+        pos = position.xy+vec2( 0.0, -dimensions.y);
+        neighbors[1] = vec3(pos*scale.x,(texture2D(map,pos).x)*scale.y);
+
+        pos = position.xy+vec2( dimensions.x, -dimensions.y);
+        neighbors[2] = vec3(pos*scale.x, (texture2D(map,pos).x)*scale.y);
+
+        pos = position.xy+vec2( dimensions.x, 0.0);
+        neighbors[3] = vec3(pos*scale.x, (texture2D(map, pos).x)*scale.y);
+
+        pos = position.xy+vec2( dimensions.x, dimensions.y);
+        neighbors[4] = vec3(pos*scale.x, (texture2D(map,pos).x)*scale.y);
+
+        pos = position.xy+vec2( 0.0, dimensions.y);
+        neighbors[5] = vec3(pos*scale.x, (texture2D(map,pos).x)*scale.y);
+
+        pos = position.xy+vec2(-dimensions.x,  dimensions.y);
+        neighbors[6] = vec3(pos*scale.x, (texture2D(map,pos).x)*scale.y);
+
+        pos = position.xy+vec2( -dimensions.x, 0.0);
+        neighbors[7] = vec3(pos*scale.x, (texture2D(map,pos).x)*scale.y);
+
+        // compute normal vector from neighbor positions
+        vec3 n = (cross(neighbors[0]-center, neighbors[1]-center));
+        n += (cross(neighbors[1]-center, neighbors[2]-center));
+        n += (cross(neighbors[2]-center, neighbors[3]-center));
+        n += (cross(neighbors[3]-center, neighbors[4]-center));
+        n += (cross(neighbors[4]-center, neighbors[5]-center));
+        n += (cross(neighbors[5]-center, neighbors[6]-center));
+        n += (cross(neighbors[6]-center, neighbors[7]-center));
+        n += (cross(neighbors[0]-center, neighbors[7]-center));
+
+        n = normalize(n);
+        v_Normal = (n+1.0)*0.5;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(center,1.0);
+
+    }
+    </script>
+    <script id="terrainfs" type="x-shader/x-fragment">
+    varying vec3 v_Normal;
+    uniform vec3 lightDir;
+    void main() {
+        // very simple shader for directional light
+        //(max { L . n, 0} ) * diffuseLight * diffuseMaterial
+        vec3 L = normalize(lightDir);
+        float mult = max(dot(L,v_Normal),0.0);
+        gl_FragColor = vec4(mult*vec3(1.0,1.0,1.0),1.0);
+    }
+
+    </script>
+    <script> 
+     var meshCenter;
+     var mesh;
+     $(function(){
+	 var keysPressed = {};
+	 var scene = new THREE.Scene(); 
+	 var camera = new THREE.PerspectiveCamera(75, 800.0/600.0, 0.1, 1000); 
+	 
+	 var renderer = new THREE.WebGLRenderer(); 
+	 renderer.setSize(800, 600); 
+	 renderer.setClearColor(0x000000,1); 
+	 
+	 $("#main").append(renderer.domElement); 
+	 
+	 // Construct geometry object
+	 var geom = new THREE.Geometry();
+	 var WIDTH = 100;
+	 var HEIGHT = 100;
+	 
+	 // Put vertices into a plane (flat surface)
+	 for(var h=0;h<HEIGHT;h++){
+             for(var w=0;w<WIDTH;w++){
+		 geom.vertices.push(new THREE.Vector3(h/HEIGHT,w/WIDTH,0.0));
+             }
+	 }
+	 
+	 // Construct quad faces from vertex array
+	 for(var h=0;h<HEIGHT-1;h++){
+             for(var w=0;w<WIDTH-1;w++){
+		 geom.faces.push(new THREE.Face3(w+(WIDTH*h),WIDTH*(h+1)+w,WIDTH*(h+1)+w+1));
+		 geom.faces.push(new THREE.Face3(w+(WIDTH*h),WIDTH*(h+1)+w+1, w+(WIDTH*h)+1));
+             }
+	 }
+	 geom.computeBoundingSphere();
+	 geom.boundingSphere.radius *= 3.0;
+	 
+	 // basic material for displacement (height) map. 
+	 var shMat = new THREE.ShaderMaterial({
+           uniforms: {
+               map: { type: 't', value: THREE.ImageUtils.loadTexture("displacement-map.png")},
+               scale: { type: 'v2', value: new THREE.Vector2(3.0,1.0) },
+               dimensions: { type: 'v2', value: new THREE.Vector2(1.0/WIDTH,1.0/HEIGHT)},
+               lightDir: { type: 'v3', value: new THREE.Vector3(0.0,0.0,1.0) }
+           },
+             vertexShader: $('#terrainvs').text(),
+             fragmentShader: $('#terrainfs').text(),
+             side: THREE.FrontSide,
+	     
+             wireframe: false,
+             transparent: true
+	     
+	 });
+	 
+	 shMat.wrapT = shMat.wrapS = THREE.RepeatWrapping;
+	 mesh = new THREE.Mesh( geom, shMat);
+	 meshCenter = new THREE.Object3D();			  
+	 meshCenter.position.y = 1.0;
+	 meshCenter.add(mesh);
+	 mesh.position.x = -1.5;	 
+	 mesh.position.y = -1.5;	 
+	 scene.add(meshCenter);
+	 camera.position.z = 2;
+	 camera.position.x = 0;
+	 camera.rotation.x = 0.5;
+	 var matArray = [];
+	 scene.add(camera);
+	 var angle = 0.0;
+	 
+	 function update(){
+             // rotate light direction vector
+             angle+=0.001;
+             meshCenter.rotation.z += 0.002;
+	     shMat.uniforms.lightDir.value.x = 1.0+Math.sin(angle);
+             shMat.uniforms.lightDir.value.y = 1.0+Math.cos(angle);
+	 }
+
+
+
+	 function render() { 
+
+             requestAnimationFrame(render); 
+             update();
+             renderer.render(scene, camera); 
+
+	 } 
+	 render();
+         var prevX = 0, prevY=0, down=false;
+	 // input handling
+         document.onkeydown = function(event) {
+             console.log(event.keyCode);
+             keysPressed[event.keyCode] = true;
+         }
+
+         document.onkeyup = function(event) {
+             keysPressed[event.keyCode] = false;
+         }
+
+        $("#controls input").each( function(){
+            $(this).on('change', function(){
+		if( $(this).is(':checked') ){
+		    console.log($(this).val());
+
+		    mesh.material.wireframe = ($(this).val() == "true");
+		    console.log(mesh);
+		}
+	    });
+	});
+
+
+});
+</script>
+<link rel="stylesheet" type="text/css" href="../style.css"> 
+</head> 
+<body> 
+<div id="main">
+
+</div>
+<div id="controls" class="controls">
+    Displacement mapping demo with plane and simple texture<p/>
+    Wireframe settings:<br/>
+    <input type="radio" name="wireframe" value="false" id="wire-false" checked/>Filled<br/>
+    <input type="radio" name="wireframe" value="true" id="wire-true" />Wireframe<br/>
+</div>
+</body>
+</html>
+
