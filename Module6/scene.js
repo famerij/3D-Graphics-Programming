@@ -141,7 +141,7 @@ $(function() {
 			},
 			"dirlight.ambient": {
 				type: 'v4',
-				value: new THREE.Vector4(0, 0, 0, 1.0) /* ambient value in light */
+				value: new THREE.Vector4(.1, .1, .2, 1.0) /* ambient value in light */
 			},
 			"dirlight.specular": {
 				type: 'v4',
@@ -290,6 +290,97 @@ $(function() {
 	// var clouds = new THREE.Mesh(cloudGeometry, cloudMat);
 	// scene.add(clouds);
 
+	//The trees
+	//Pines
+	var pineTexture = THREE.ImageUtils.loadTexture("pine.png");
+
+	var pineGeometry = new THREE.PlaneGeometry(4,4);
+
+	for (var i = 0; i < 10; i++)
+	{
+		var pineX = new THREE.Mesh(pineGeometry,
+			new THREE.MeshBasicMaterial(
+				{
+					map: pineTexture,
+					depthTest: true,
+					depthWrite: false,
+					transparent: true,
+					blending: THREE.NormalBlending,
+					side: THREE.DoubleSide
+				}
+			));
+
+		scene.add(pineX);
+		pineX.position.x = 2 * i;
+		pineX.position.y = 2;
+		pineX.position.z = -10;
+		pineX.rotation.z = Math.PI;
+
+		var pineZ = new THREE.Mesh(pineGeometry,
+			new THREE.MeshBasicMaterial(
+				{
+					map: pineTexture,
+					depthTest: true,
+					depthWrite: false,
+					transparent: true,
+					blending: THREE.NormalBlending,
+					side: THREE.DoubleSide
+				}
+			));
+
+		scene.add(pineZ);
+		pineZ.position.x = 2 * i;
+		pineZ.position.y = 2;
+		pineZ.position.z = -10;
+		pineZ.rotation.z = Math.PI;
+		pineZ.rotation.y = Math.PI / 2;
+	}
+
+	//Limess
+	var limeTexture = THREE.ImageUtils.loadTexture("lime.png");
+
+	var limeGeometry = new THREE.PlaneGeometry(4,4);
+
+	for (var i = 0; i < 10; i++)
+	{
+		var limeX = new THREE.Mesh(limeGeometry,
+			new THREE.MeshBasicMaterial(
+				{
+					map: limeTexture,
+					depthTest: true,
+					depthWrite: false,
+					transparent: true,
+					blending: THREE.NormalBlending,
+					side: THREE.DoubleSide
+				}
+			));
+
+		scene.add(limeX);
+		limeX.position.x = 2 * i;
+		limeX.position.y = 2;
+		limeX.position.z = -6;
+		limeX.rotation.z = Math.PI;
+
+		var limeZ = new THREE.Mesh(limeGeometry,
+			new THREE.MeshBasicMaterial(
+				{
+					map: limeTexture,
+					depthTest: true,
+					depthWrite: false,
+					transparent: true,
+					blending: THREE.NormalBlending,
+					side: THREE.DoubleSide
+				}
+			));
+
+		scene.add(limeZ);
+		limeZ.position.x = 2 * i;
+		limeZ.position.y = 2;
+		limeZ.position.z = -6;
+		limeZ.rotation.z = Math.PI;
+		limeZ.rotation.y = Math.PI / 2;
+	}
+
 	// Construct a mesh object
 	var ground = new THREE.Mesh(new THREE.BoxGeometry(100, 0.2, 100, 1, 1, 1),
 		customLamberShader
@@ -312,8 +403,6 @@ $(function() {
 
 	scene.add(ground);
 
-
-	//createArm();
 	// Create our improved particle system object.
 	smokeParticleSystem = new CustomParticleSystem({
 		maxParticles: 500,
@@ -383,6 +472,9 @@ $(function() {
 	});
 	// add Three.js particlesystem to scene.
 	scene.add(fireParticleSystem.ps);
+
+	smokeParticleSystem.ps.position.z = -8;
+	fireParticleSystem.ps.position.z = -8;
 
 	fps.time = new Date();
 	// request frame update and call update-function once it comes
