@@ -425,7 +425,8 @@ $(function() {
 			// particle moves up
 			var yVel = THREE.Math.randFloat(.6, 1);
 			var xVel = THREE.Math.randFloat(-.3, .3);
-			particle.velocity = new THREE.Vector3(xVel, yVel, 0);
+			var zVel = THREE.Math.randFloat(-.3, .3);
+			particle.velocity = new THREE.Vector3(xVel, yVel, zVel);
 			// particle life force
 			particle.energy = 1.0;
 		},
@@ -459,7 +460,8 @@ $(function() {
 			particle.set(0, 0, 0);
 			var yVel = THREE.Math.randFloat(.3, .5);
 			var xVel = THREE.Math.randFloat(-.1, .1);
-			particle.velocity = new THREE.Vector3(xVel, yVel, 0);
+			var zVel = THREE.Math.randFloat(-.1, .1);
+			particle.velocity = new THREE.Vector3(xVel, yVel, zVel);
 			// particle life force
 			particle.energy = 1.0;
 		},
